@@ -1,0 +1,34 @@
+@use 'sass:map';
+
+$sidebar-bg: #f5f7fa;
+$primary-color: #1673ce;
+$shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+$transition-speed: 0.3s;
+$header-height: 60px;
+
+$colors: () !default;
+$colors: map.deep-merge(
+  (
+    'white': #ffffff,
+    'black': #000000,
+    'primary': (
+      'base': $primary-color,
+    ),
+    'success': (
+      'base': #67c23a,
+    ),
+    'warning': (
+      'base': #e6a23c,
+    ),
+    'danger': (
+      'base': #f56c6c,
+    ),
+    'error': (
+      'base': #f56c6c,
+    ),
+    'info': (
+      'base': #909399,
+    ),
+  ),
+  $colors
+);
