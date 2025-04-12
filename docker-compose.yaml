@@ -1,24 +1,17 @@
 version: '3'
 services:
-  # backend:
-  #   image: backend
-  #   environment:
-  #     - DB_HOST=${DB_HOST}
-  #     - DB_PORT=${DB_PORT}
-  #     - DB_NAME=${DB_NAME}
-  #     - DB_USER=${DB_USER}
-  #     - DB_PSWD=${DB_PSWD}
-  #     - SECRET_KEY=${SECRET_KEY}
-  #     - CLOUD_CREDS=${CLOUD_CREDS}
-  #   build:
-  #     context: backend
-  #     args:
-  #       - DOCKER_BUILDKIT=1
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - 8001:8001
-  #   volumes:
-  #     - .:/app
+  backend:
+    image: backend
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+    build:
+      context: backend
+      args:
+        - DOCKER_BUILDKIT=1
+      dockerfile: Dockerfile
+    ports:
+      - 8000:80
   frontend:
     image: frontend
     build:
