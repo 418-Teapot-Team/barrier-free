@@ -1,6 +1,6 @@
 import L from 'leaflet'
 
-export class OSMap {
+class OSMap {
   #container = null
   /** @type {L.Map} */
   #map = null
@@ -120,5 +120,13 @@ export class OSMap {
    */
   _getTileLayer() {
     return this.#tileLayer
+  }
+}
+
+export class OSMapVueAdapter {
+  install(app) {
+    const osmap = new OSMap()
+    app.config.globalProperties.$osmap = osmap
+    app.provide('osmap', osmap)
   }
 }

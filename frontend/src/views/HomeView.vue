@@ -14,23 +14,20 @@
       </div>
     </div>
 
-    <div class="map-container" ref="mapContainer"></div>
+    <map-view />
   </div>
 </template>
 
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import MapView from '@/components/Map.vue'
+import { ref, computed, inject } from 'vue'
 import { Search, Location } from '@element-plus/icons-vue'
 import 'leaflet/dist/leaflet.css'
-import { OSMap } from '@/utils/map'
 
 const collapsed = ref(false)
 const sidebarWidth = ref('20%')
 const collapsedWidth = ref('4px')
-
-const mapContainer = ref(null)
-const map = new OSMap()
 
 const mainContentStyle = computed(() => {
   return {
@@ -43,32 +40,9 @@ const mainContentStyle = computed(() => {
 const toggleSidebar = () => {
   collapsed.value = !collapsed.value
   setTimeout(() => {
-    map.resize()
+    $osmap.resize()
   }, 300)
 }
-
-onMounted(() => {
-  map.registerContainer(mapContainer.value)
-
-  map.initialize([49.842957, 24.031111], 13)
-
-  map.registerTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    maxZoom: 19,
-    minZoom: 5,
-  })
-
-  const marker = map.addMarker([49.842957, 24.031111], null, {
-    content: 'Lviv city center',
-  })
-
-  marker.openPopup()
-})
-
-onUnmounted(() => {
-  map.remove()
-})
 </script>
 
 <style lang="scss" scoped>
@@ -102,13 +76,5 @@ onUnmounted(() => {
 .header-actions {
   display: flex;
   gap: 10px;
-}
-
-// Added map container styles
-.map-container {
-  flex: 1;
-  width: 100%;
-  height: calc(100% - #{$header-height});
-  z-index: 1;
 }
 </style>
