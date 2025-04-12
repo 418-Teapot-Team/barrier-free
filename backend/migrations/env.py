@@ -2,15 +2,17 @@ import asyncio
 from logging.config import fileConfig
 from typing import Iterable
 
+import alembic_postgresql_enum  # noqa: F401
 from alembic import context
 from alembic.operations.ops import MigrationScript
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
+from sqlalchemy import Connection, pool
+from sqlalchemy.ext.asyncio import async_engine_from_config
+
 from api.db.tables import TableBase
 from api.db.utils import get_db_url
 from api.settings import settings
-from sqlalchemy import Connection, pool
-from sqlalchemy.ext.asyncio import async_engine_from_config
 
 config = context.config
 

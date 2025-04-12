@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from typing import Annotated
 
@@ -10,6 +11,7 @@ from sqlalchemy import (
     String,
     func,
 )
+from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import DeclarativeBase, mapped_column, registry
 
 intpk = Annotated[int, mapped_column(Integer, primary_key=True)]
@@ -44,3 +46,29 @@ class TableBase(DeclarativeBase):
         metadata=MetaData(naming_convention=constraint_naming_convention),
         type_annotation_map={},
     )
+
+
+class EnumMixin:
+    """Helper class to properly map enum types."""
+
+    def __init_subclass__(cls) -> None:
+        super().__init_subclass__()
+        TableBase.registry.update_type_annotation_map({cls: cls.as_sqla_enum()})
+
+    @classmethod
+    def get_type_name(cls) -> str:
+        """Split string on capital letters.
+
+        Example: `FooBar` -> `foo_bar`
+        """
+        return "_".join(re.findall("[A-Z][^A-Z]*", cls.__name__)).lower()
+
+    @classmethod
+    def as_sqla_enum(cls) -> ENUM:
+        """Return PostgreSQL dialect enum object."""
+        return ENUM(
+            cls,
+            name=cls.get_type_name(),
+            values_callable=lambda e: [str(i.value) for i in e],
+            create_type=False,
+        )
