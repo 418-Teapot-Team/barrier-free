@@ -21,7 +21,7 @@
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
 import MapView from '@/components/Map.vue'
-import { ref, computed, inject } from 'vue'
+import { ref, computed } from 'vue'
 import { Search, Location } from '@element-plus/icons-vue'
 import 'leaflet/dist/leaflet.css'
 
