@@ -1,7 +1,7 @@
 <template>
     <div class="node-modal">
         <h2>Details</h2>
-        <p>The node accessibility is: <strong>{{ nodeAccessibility }}</strong></p>
+        <p v-if="nodeAccessibility">The node accessibility is: <strong>{{ nodeAccessibility }}</strong></p>
         <div class="comment-list">
             <div v-for="(comment, index) in nodeComments" :key="index" class="comment-item">
                 <p><strong>{{ comment.text }}</strong></p>
