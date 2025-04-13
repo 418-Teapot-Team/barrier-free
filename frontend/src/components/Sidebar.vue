@@ -51,7 +51,7 @@ watch(
 
 const handleSelectLocation = (location) => {
   const [longitude, latitude] = location.geometry.coordinates
-  osmap.moveToMarker(location.properties.osm_id, [latitude, longitude], 19)
+  osmap.moveToMarker(location.properties.osm_id, [latitude, longitude])
 
   // searchStore.setQueryWithoutSearch(location.properties.name);
   searchStore.searchResults = []

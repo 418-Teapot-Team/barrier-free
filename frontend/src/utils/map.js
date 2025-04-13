@@ -55,7 +55,39 @@ export class OSMap {
 
     this.#map = L.map(this.#container, {}).setView(center, zoom)
 
-    this.#markerClusterGroup = L.markerClusterGroup()
+    this.#markerClusterGroup = L.markerClusterGroup({
+      disableClusteringAtZoom: 20,
+      iconCreateFunction: (cluster) => {
+        const count = cluster.getChildCount()
+        const size = getClusterSizeCategory(count) // small, medium, large (for sizing if needed)
+        const color = getClusterColor(count) // gradient color
+
+        const html = `
+          <div style="
+            background-color: ${color};
+            width: ${size}px;
+            height: ${size}px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            border: 2px solid white;
+            box-shadow: 0 0 6px rgba(0,0,0,0.3);
+          ">
+            ${count}
+          </div>
+        `
+
+        return L.divIcon({
+          html,
+          className: 'custom-cluster-icon', // optional for further styling
+          iconSize: [size, size],
+        })
+      },
+    })
 
     this.#controller = new OSMapController(this)
   }
@@ -177,18 +209,18 @@ export class OSMap {
    * Moves the map view to a specific location and optional zoom level, then moves to specific marker and opens its popup.
    * @param {number | string} id - id of marker
    * @param {L.LatLngExpression} latlng - Coordinates to move to.
-   * @param {number} [zoom] - Optional zoom level.
    * @returns {void}
    */
-  moveToMarker(id, latlng, zoom) {
-    console.log(id, latlng, zoom)
+  moveToMarker(id, latlng) {
+    console.log(id, latlng)
     if (!this.#map) {
       throw Error('moveToMarker error: map should be initialized first')
     }
     this.#controller.setLock(true)
-    this.moveTo(latlng, zoom)
+    this.moveTo(latlng, 20)
     this.#controller.triggerChangeBBox(() => {
       const marker = this.#markers.find((item) => +item.id === +id)
+      console.log('m', marker)
       if (marker) {
         marker.marker.openPopup()
       }
@@ -435,4 +467,58 @@ export class OSMapController extends EventEmitter {
   isLocked() {
     return this.#lock
   }
+}
+
+function getClusterSizeCategory(count) {
+  if (count < 10) return 30
+  if (count < 50) return 40
+  return 50
+}
+
+function getClusterColor(count) {
+  const min = 1
+  const max = 100 // Adjust this as needed based on your data
+  const ratio = Math.min(1, (count - min) / (max - min))
+
+  const colorStops = [
+    { stop: 0.0, color: '#3498db' }, // blue
+    { stop: 0.33, color: '#2ecc71' }, // green
+    { stop: 0.66, color: '#f1c40f' }, // yellow
+    { stop: 1.0, color: '#e67e22' }, // orange
+  ]
+
+  // Find which segment the ratio falls into
+  for (let i = 0; i < colorStops.length - 1; i++) {
+    const start = colorStops[i]
+    const end = colorStops[i + 1]
+
+    if (ratio >= start.stop && ratio <= end.stop) {
+      const localRatio = (ratio - start.stop) / (end.stop - start.stop)
+      return interpolateColor(start.color, end.color, localRatio)
+    }
+  }
+
+  return colorStops[colorStops.length - 1].color
+}
+
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null
+}
+
+function interpolateColor(color1, color2, factor = 0.5) {
+  const c1 = hexToRgb(color1)
+  const c2 = hexToRgb(color2)
+
+  const r = Math.round(c1.r + factor * (c2.r - c1.r))
+  const g = Math.round(c1.g + factor * (c2.g - c1.g))
+  const b = Math.round(c1.b + factor * (c2.b - c1.b))
+
+  return `rgb(${r}, ${g}, ${b})`
 }
