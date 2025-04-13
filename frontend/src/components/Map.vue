@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, inject, watch } from 'vue'
 import { OSMap } from '@/utils/map'
 import { useWheelmapStore } from '@/stores/wheelmap'
 import { WheelmapMarkersMapper } from '@/utils/markers-mapper'
+import 'leaflet-routing-machine'
 
 /** @type {OSMap} */
 const osmap = inject('osmap')
@@ -22,6 +23,14 @@ onMounted(() => {
     maxZoom: 19,
     minZoom: 5,
   })
+
+  // L.Routing.control({
+  //   waypoints: [
+  //     L.latLng(49.842957, 24.031111),
+  //     L.latLng(50.26487, 28.67669),
+  //     L.latLng(49.553516, 25.594767),
+  //   ],
+  // }).addTo(osmap._getMapInstance())
 
   osmap.controller.subscribeBBoxChange()
 

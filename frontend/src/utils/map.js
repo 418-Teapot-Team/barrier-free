@@ -235,9 +235,17 @@ export class OSMapController extends EventEmitter {
       throw new Error('OSMapController error: Map is not initialized')
     }
 
+    let debounceTimer = null
+
     const triggerBBoxChange = () => {
-      const bbox = this.mapInstance.getBBox()
-      this.emit('bbox-changed', bbox)
+      if (debounceTimer) {
+        clearTimeout(debounceTimer)
+      }
+
+      debounceTimer = setTimeout(() => {
+        const bbox = this.mapInstance.getBBox()
+        this.emit('bbox-changed', bbox)
+      }, 500)
     }
 
     map.on('moveend', triggerBBoxChange)
