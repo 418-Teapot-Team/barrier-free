@@ -1,12 +1,15 @@
 <script setup>
-import { ref, onMounted, onUnmounted, inject } from 'vue'
+import { ref, onMounted, onUnmounted, inject, watch } from 'vue'
 import { OSMap } from '@/utils/map'
+import { useWheelmapStore } from '@/stores/wheelmap'
+import { WheelmapMarkersMapper } from '@/utils/markers-mapper'
 
 /** @type {OSMap} */
 const osmap = inject('osmap')
 
+const wheelmapStore = useWheelmapStore()
+
 const mapContainer = ref(null)
-const locationListener = ref(null)
 
 onMounted(() => {
   osmap.registerContainer(mapContainer.value)
@@ -23,7 +26,13 @@ onMounted(() => {
   osmap.controller.subscribeBBoxChange()
 
   osmap.controller.on('bbox-changed', (bbox) => {
-    console.log('bbox', bbox)
+    wheelmapStore.fetchNodes(bbox).then((nodes) => {
+      osmap.clearAllMarkers()
+
+      const preparedMarkers = WheelmapMarkersMapper.map(nodes)
+
+      osmap.addMarkers(preparedMarkers)
+    })
   })
 
   osmap.controller.triggerChangeBBox()
@@ -33,14 +42,6 @@ onUnmounted(() => {
   osmap.controller.unsubscribeBBoxChange()
   osmap.remove()
 })
-
-const resize = () => {
-  if (osmap.map) {
-    osmap.map.invalidateSize()
-  }
-}
-
-defineExpose({ resize })
 </script>
 <template>
   <div class="map-container" ref="mapContainer"></div>

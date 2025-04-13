@@ -1,5 +1,5 @@
 import L from 'leaflet'
-
+import 'leaflet.markercluster'
 import { EventEmitter } from './event-emitter'
 
 export class OSMap {
@@ -10,6 +10,9 @@ export class OSMap {
   #tileLayer = null
   /** @type {Array<L.Marker>} */
   #markers = new Array()
+
+  /** @type {L.MarkerClusterGroup} */
+  #markerClusterGroup = null
 
   /** @type {OSMapController | null} */
   #controller = null
@@ -43,6 +46,8 @@ export class OSMap {
 
     this.#map = L.map(this.#container, {}).setView(center, zoom)
 
+    this.#markerClusterGroup = L.markerClusterGroup()
+
     this.#controller = new OSMapController(this)
   }
 
@@ -60,8 +65,8 @@ export class OSMap {
   }
 
   /**
-   * Adds a marker to the map.
-   *
+   * Adds a single marker to the map with clustering.
+   * @param {number | string} id - id of node used for marker
    * @param {L.LatLngExpression} latlng - Coordinates for the marker.
    * @param {L.MarkerOptions} options - Options for the marker.
    * @param {Object} [popup] - Popup configuration.
@@ -70,19 +75,73 @@ export class OSMap {
    *
    * @returns {L.Marker} The created Leaflet marker.
    */
-  addMarker(latlng, options, popup) {
+  addMarker(id, latlng, options, popup) {
     if (!this.#map) {
       throw Error('register title error: map should be initialized first')
     }
-    const marker = L.marker(latlng, options).addTo(this.#map)
+
+    const marker = L.marker(latlng, options)
 
     if (popup) {
       marker.bindPopup(popup.content, popup.options)
     }
 
-    this.#markers.push(marker)
+    this.#markerClusterGroup.addLayer(marker)
+
+    if (!this.#map.hasLayer(this.#markerClusterGroup)) {
+      this.#map.addLayer(this.#markerClusterGroup)
+    }
+
+    this.#markers.push({ id, ...marker })
 
     return marker
+  }
+
+  /**
+   * Adds multiple markers to the map with clustering.
+   * @param {Array<{id: number | string, latlng: L.LatLngExpression, options: L.MarkerOptions, popup?: Object}>} markersData - Array of marker data (id, latlng, options, and optional popup).
+   * @returns {Array<L.Marker>} Array of created Leaflet markers.
+   */
+  addMarkers(markersData) {
+    if (!this.#map) {
+      throw Error('addMarkers error: map should be initialized first')
+    }
+
+    const createdMarkers = markersData.map((markerData) => {
+      const { id, latlng, options, popup } = markerData
+      const marker = L.marker(latlng, options)
+
+      if (popup) {
+        marker.bindPopup(popup.content, popup.options)
+      }
+
+      this.#markerClusterGroup.addLayer(marker)
+
+      return { id, marker }
+    })
+
+    if (!this.#map.hasLayer(this.#markerClusterGroup)) {
+      this.#map.addLayer(this.#markerClusterGroup)
+    }
+
+    this.#markers.push(...createdMarkers)
+
+    return createdMarkers.map((item) => item.marker)
+  }
+  /**
+   * Clears all markers from the map and the cluster group.
+   * @returns {void}
+   */
+  clearAllMarkers() {
+    if (!this.#map) {
+      throw Error('clearAllMarkers error: map should be initialized first')
+    }
+
+    // Remove all markers from the cluster group
+    this.#markerClusterGroup.clearLayers()
+
+    // Clear the markers array as well
+    this.#markers = []
   }
 
   /**

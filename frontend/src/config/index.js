@@ -11,8 +11,15 @@ export const API_ENDPOINTS = {
     LOGIN: `${API_URL}/auth/login`,
     REGISTER: `${API_URL}/auth/register`,
     ME: `${API_URL}/auth/me`,
-  }
+  },
 }
 
-// Other config variables can be added here
-export const APP_NAME = 'Map Explorer' 
+// WheelMap API
+export const WM_API_URL = 'https://ac-o-2.global.ssl.fastly.net/api/v1/legacy/api'
+export const WM_API_KEY = '3s8GNQvBCmwm45zro_jP'
+
+export const WM_API_ENDPOINTS = {
+  NODES: `${WM_API_URL}/nodes/`,
+}
+
+export const APP_NAME = 'Barrier Free'

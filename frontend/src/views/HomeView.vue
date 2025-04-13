@@ -21,8 +21,10 @@
 import Sidebar from '@/components/Sidebar.vue'
 import MapView from '@/components/Map.vue'
 import UserProfile from '@/components/UserProfile.vue'
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
 import 'leaflet/dist/leaflet.css'
+
+const osmap = inject('osmap')
 
 const collapsed = ref(false)
 const sidebarWidth = ref('20%')
@@ -40,9 +42,7 @@ const mainContentStyle = computed(() => {
 const toggleSidebar = () => {
   collapsed.value = !collapsed.value
   setTimeout(() => {
-    if (mapViewRef.value) {
-      mapViewRef.value.resize()
-    }
+    osmap.resize()
   }, 300)
 }
 </script>
