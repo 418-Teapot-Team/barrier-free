@@ -12,7 +12,7 @@ export class OSMap {
   /** @type {L.TileLayer} */
   #tileLayer = null
 
-  /** @type {Array<L.Marker>} */
+  /** @type {Array<{id: string | number, marker: L.Marker}>} */
   #markers = new Array()
 
   /** @type {L.MarkerClusterGroup} */
@@ -163,11 +163,31 @@ export class OSMap {
     if (!this.#map) {
       throw Error('moveTo error: map should be initialized first')
     }
-    if (typeof zoom === 'number') {
-      this.#map.setView(latlng, zoom)
-    } else {
-      this.#map.panTo(latlng)
+
+    this.#controller.triggerChangeBBox(() => {
+      if (typeof zoom === 'number') {
+        this.#map.setView(latlng, zoom)
+      } else {
+        this.#map.panTo(latlng)
+      }
+    })
+  }
+
+  moveToMarker(id, latlng, zoom) {
+    if (!this.#map) {
+      throw Error('moveToMarker error: map should be initialized first')
     }
+    this.moveTo(latlng, zoom)
+    this.#controller.setLock(true)
+
+    this.#controller.triggerChangeBBox(() => {
+      const marker = this.#markers.find((item) => item.id === id)
+      if (marker) {
+        marker.marker.openPopup()
+      }
+
+      this.#controller.setLock(false)
+    })
   }
 
   /**
@@ -312,6 +332,10 @@ export class OSMapVueAdapter {
 }
 
 export class OSMapController extends EventEmitter {
+  #lock = false
+  #debounceTimer = null
+  #mapListenersBound = false
+
   /**
    * @param {OSMap} mapInstance - Instance of OSMap
    */
@@ -322,6 +346,17 @@ export class OSMapController extends EventEmitter {
     this.mapInstance = mapInstance
   }
 
+  /**
+   * Enable or disable event emission globally.
+   * @param {boolean} value - true to lock, false to unlock
+   */
+  setLock(value) {
+    this.#lock = value
+  }
+
+  /**
+   * Subscribe to bbox change events with debounced handling.
+   */
   subscribeBBoxChange() {
     const map = this.mapInstance._getMapInstance()
 
@@ -329,34 +364,53 @@ export class OSMapController extends EventEmitter {
       throw new Error('OSMapController error: Map is not initialized')
     }
 
-    let debounceTimer = null
+    if (this.#mapListenersBound) return
+    this.#mapListenersBound = true
 
-    const triggerBBoxChange = () => {
-      if (debounceTimer) {
-        clearTimeout(debounceTimer)
+    const boundTrigger = this.#onBboxChange.bind(this)
+
+    map.on('moveend', boundTrigger)
+    map.on('zoomend', boundTrigger)
+    map.on('resize', boundTrigger)
+  }
+
+  /**
+   * Manually triggers a bbox-changed event and executes a callback after all async listeners complete ignoring lock
+   * @param {Function} callback - Function to be called after all event listeners finish their async operations
+   * @returns {Promise<void>}
+   */
+  async triggerChangeBBox(callback) {
+    const bbox = this.mapInstance.getBBox()
+
+    try {
+      // Use promise-based event emission to handle async listeners
+      await this.emitAsync('bbox-changed', bbox)
+    } catch (e) {
+      throw e
+    } finally {
+      if (typeof callback === 'function') {
+        callback(bbox)
       }
+    }
+  }
 
-      debounceTimer = setTimeout(() => {
-        const bbox = this.mapInstance.getBBox()
-        this.emit('bbox-changed', bbox)
-      }, 500)
+  #onBboxChange() {
+    if (this.#lock) return
+
+    if (this.#debounceTimer) {
+      clearTimeout(this.#debounceTimer)
     }
 
-    map.on('moveend', triggerBBoxChange)
-    map.on('zoomend', triggerBBoxChange)
-    map.on('resize', triggerBBoxChange)
+    this.#debounceTimer = setTimeout(() => {
+      if (!this.#lock) {
+        const bbox = this.mapInstance.getBBox()
+        this.emit('bbox-changed', bbox)
+      }
+    }, 500)
   }
 
   /**
-   * Manually emit bbox-changed (e.g. on init)
-   */
-  triggerChangeBBox() {
-    const bbox = this.mapInstance.getBBox()
-    this.emit('bbox-changed', bbox)
-  }
-
-  /**
-   * Clean up all events
+   * Clean up all events and listeners
    */
   unsubscribeBBoxChange() {
     const map = this.mapInstance._getMapInstance()
@@ -364,5 +418,14 @@ export class OSMapController extends EventEmitter {
     map.off('zoomend')
     map.off('resize')
     this.removeListeners('bbox-changed')
+    this.#mapListenersBound = false
+  }
+
+  /**
+   * Returns current lock state.
+   * @returns {boolean}
+   */
+  isLocked() {
+    return this.#lock
   }
 }
