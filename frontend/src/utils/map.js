@@ -173,6 +173,13 @@ export class OSMap {
     })
   }
 
+  /**
+   * Moves the map view to a specific location and optional zoom level, then moves to specific marker and opens its popup.
+   * @param {number | string} id - id of marker
+   * @param {L.LatLngExpression} latlng - Coordinates to move to.
+   * @param {number} [zoom] - Optional zoom level.
+   * @returns {void}
+   */
   moveToMarker(id, latlng, zoom) {
     if (!this.#map) {
       throw Error('moveToMarker error: map should be initialized first')
@@ -181,7 +188,7 @@ export class OSMap {
     this.#controller.setLock(true)
 
     this.#controller.triggerChangeBBox(() => {
-      const marker = this.#markers.find((item) => item.id === id)
+      const marker = this.#markers.find((item) => +item.id === +id)
       if (marker) {
         marker.marker.openPopup()
       }
