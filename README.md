@@ -1,3 +1,11 @@
+## VIDEOS
+https://drive.google.com/drive/folders/1HO2ZzTbPRUSKKdBQ0EqFLbwGTJgG_k2j?usp=sharing
+
+## Перспективи просування
+https://www.notion.so/1d1aa238afc08097be28dd4af9da55f5?pvs=4
+---
+
+
 # Barrier Free – Real-World Accessibility Mapping Platform
 
 Barrier Free is a global accessibility platform built on real, non-generated data. It's not a prototype — it's fully functional and ready for real-world deployment. Whether you're mapping accessibility in Ukraine or across the globe, our mission is simple: help people with disabilities navigate their environment with confidence.
@@ -135,6 +143,3 @@ Watch Tima’s intro video here:
 ## Contact
 
 [Contact information to be added]
-
-# VIDEOS
-[link](https://drive.google.com/drive/folders/1HO2ZzTbPRUSKKdBQ0EqFLbwGTJgG_k2j?usp=sharing)
