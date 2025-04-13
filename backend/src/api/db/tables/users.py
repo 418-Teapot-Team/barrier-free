@@ -8,6 +8,8 @@ from .base import EnumMixin, TableBase, intpk
 
 class UserDisability(EnumMixin, StrEnum):
     WHEELCHAIR = "wheelchair"
+    BLIND = "blind"
+    DEAF = "deaf"
 
 
 class UserRole(EnumMixin, StrEnum):
