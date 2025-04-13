@@ -1,3 +1,6 @@
+import { createApp } from 'vue'
+import PopupContent from '@/components/PopupContent.vue'
+
 /**
  * Maps wheelmap nodes to the Leaflet cluster marker format
  * @param {Array} nodes - The nodes array returned from the API
@@ -95,15 +98,21 @@ function createPopupContent(node, nodeType) {
     contactInfo += '</div>'
   }
 
-  return `
-      <div class="leaflet-popup-content">
-        <h3>${node.name}</h3>
-        <p class="type">${nodeType.replace('_', ' ')}</p>
-        ${address ? `<p class="address">${address}</p>` : ''}
-        ${accessibilityInfo}
-        ${contactInfo}
-      </div>
-    `
+  // return `
+  //     <div class="leaflet-popup-content">
+  //       <h3>${node.name}</h3>
+  //       <p class="type">${nodeType.replace('_', ' ')}</p>
+  //       ${address ? `<p class="address">${address}</p>` : ''}
+  //       ${accessibilityInfo}
+  //       ${contactInfo}
+  //       <button onclick="showNodeModal()">Say Hello</button>
+  //     </div>
+  //   `
+
+  const container = document.createElement('div')
+  const app = createApp(PopupContent, { node, nodeType })
+  app.mount(container)
+  return container
 }
 
 export class WheelmapMarkersMapper {

@@ -29,6 +29,7 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false)
   const error = ref(null)
   const token = ref(loadStoredToken())
+  const disabilities = ref([])
 
   const isAuthenticated = computed(() => !!token.value)
 
@@ -75,17 +76,17 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null // Clear previous errors
       const response = await axios.post(API_ENDPOINTS.AUTH.LOGIN, credentials)
-      
+
       // Save token
       if (response.data && response.data.token) {
         setToken(response.data.token)
-        
+
         // Fetch user details after getting token
         await fetchCurrentUser()
       } else {
         throw new Error('No token received from server')
       }
-      
+
       return response.data
     } catch (err) {
       // Extract error message from response with proper format {"error":"Incorrect email"}
@@ -102,7 +103,7 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null // Clear previous errors
       const response = await axios.post(API_ENDPOINTS.AUTH.REGISTER, userData)
-      
+
       // No token handling here, just return the response
       return response.data
     } catch (err) {
@@ -125,24 +126,35 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
   }
 
+  async function fetchDisabilities() {
+    try {
+      const response = await axios.get(`${API_ENDPOINTS.AUTH.DISABILITIES}`)
+      disabilities.value = response.data
+    } catch (err) {
+      console.error('Failed to fetch disabilities:', err)
+    }
+  }
+
   // Initialize on app start
   function init() {
     if (token.value) {
       fetchCurrentUser()
     }
+    fetchDisabilities()
   }
 
-  return { 
-    user, 
-    loading, 
-    error, 
+  return {
+    user,
+    loading,
+    error,
     token,
-    isAuthenticated, 
-    fetchCurrentUser, 
-    login, 
-    register, 
+    isAuthenticated,
+    disabilities,
+    fetchCurrentUser,
+    login,
+    register,
     logout,
     clearError,
-    init
+    init,
   }
-}) 
+})

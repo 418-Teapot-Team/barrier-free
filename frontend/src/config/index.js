@@ -11,6 +11,7 @@ export const API_ENDPOINTS = {
     LOGIN: `${API_URL}/auth/login`,
     REGISTER: `${API_URL}/auth/register`,
     ME: `${API_URL}/auth/me`,
+    DISABILITIES: `${API_URL}/disabilities`,
   },
 }
 
