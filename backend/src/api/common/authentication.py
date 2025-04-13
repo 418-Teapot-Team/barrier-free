@@ -2,6 +2,8 @@ from typing import Callable, ParamSpec, TypeVar
 
 from pydantic import BaseModel
 
+from api.db.tables.users import UserRole
+
 T = TypeVar("T")
 P = ParamSpec("P")
 
@@ -17,3 +19,4 @@ def is_route_authenticated(func: Callable[P, T]) -> bool:
 
 class AuthenticatedUser(BaseModel):
     id: int
+    role: UserRole

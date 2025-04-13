@@ -14,8 +14,9 @@ from starlette.routing import BaseRoute, Match
 from starlette.types import Scope
 
 from .common.authentication import AuthenticatedUser, is_route_authenticated
+from .routes.auth.services import get_user
 from .settings import settings
-from .state import set_user
+from .state import db_engine, set_user
 
 
 def _match_routes(routes: list[BaseRoute], scope: Scope) -> FunctionType | None:
@@ -76,10 +77,6 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
                 key=settings.JWT_SECRET,
                 algorithms=[settings.JWT_ALGORITHM],
             )
-            set_user(
-                request=request,
-                user=AuthenticatedUser(id=payload["user_id"]),
-            )
         except jwt.ExpiredSignatureError:
             return JSONResponse(
                 content={"error": "Token expired"},
@@ -90,5 +87,14 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
                 content={"error": "Invalid token"},
                 status_code=401,
             )
+
+        user_id = payload["user_id"]
+        async with db_engine.connect() as db_conn:
+            user = await get_user(db_conn=db_conn, user_id=user_id)
+
+        set_user(
+            request=request,
+            user=AuthenticatedUser(id=payload["user_id"], role=user.role),
+        )
 
         return await call_next(request)

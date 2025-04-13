@@ -1,7 +1,8 @@
 from sqlalchemy import sql
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from api.db.tables.core import NodeComment
+from api.db.tables.core import Node, NodeAccessibility, NodeComment
 
 
 async def create_comment(
@@ -32,6 +33,20 @@ async def delete_comment(
     query = sql.delete(NodeComment).where(
         NodeComment.id == comment_id,
         NodeComment.user_id == user_id,
+    )
+    await db_conn.execute(query)
+    await db_conn.commit()
+
+
+async def update_node(
+    db_conn: AsyncConnection,
+    osm_id: str,
+    accessibility: NodeAccessibility,
+) -> None:
+    stmt = insert(Node).values(osm_id=osm_id, accessibility=accessibility)
+    query = stmt.on_conflict_do_update(
+        index_elements=["osm_id"],
+        set_={"accessibility": stmt.excluded.accessibility},
     )
     await db_conn.execute(query)
     await db_conn.commit()

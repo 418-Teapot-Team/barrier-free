@@ -9,8 +9,9 @@ from api.db.tables import UserDisability
 from api.routes.auth.routes import authenticated_route
 from api.state import CurrentUser, DbConn
 
+from ...db.tables.users import UserRole
 from . import services
-from .schemas import CreateNodeCommentBody
+from .schemas import CreateNodeCommentBody, UpdateNodeBody
 
 router = APIRouter()
 
@@ -50,4 +51,25 @@ async def delete_comment(
         db_conn=db_conn,
         user_id=user.id,
         comment_id=id,
+    )
+
+
+@router.patch("/nodes/{osm_id}", status_code=status.HTTP_204_NO_CONTENT)
+@authenticated_route
+async def update_node(
+    db_conn: DbConn,
+    user: CurrentUser,
+    osm_id: Annotated[str, Path()],
+    body: UpdateNodeBody,
+):
+    if user.role != UserRole.ADMIN:
+        return JSONResponse(
+            content={"error": "Only admins are allowed to update the nodes"},
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+    await services.update_node(
+        db_conn=db_conn,
+        osm_id=osm_id,
+        accessibility=body.accessibility,
     )
