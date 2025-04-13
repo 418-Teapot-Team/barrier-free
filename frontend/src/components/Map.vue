@@ -3,7 +3,6 @@ import { ref, onMounted, onUnmounted, inject, watch } from 'vue'
 import { OSMap } from '@/utils/map'
 import { useWheelmapStore } from '@/stores/wheelmap'
 import { WheelmapMarkersMapper } from '@/utils/markers-mapper'
-import 'leaflet-routing-machine'
 
 /** @type {OSMap} */
 const osmap = inject('osmap')

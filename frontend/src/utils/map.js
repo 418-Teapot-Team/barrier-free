@@ -1,5 +1,7 @@
 import L from 'leaflet'
 import 'leaflet.markercluster'
+import 'leaflet-routing-machine'
+
 import { EventEmitter } from './event-emitter'
 
 export class OSMap {
@@ -142,6 +144,23 @@ export class OSMap {
 
     // Clear the markers array as well
     this.#markers = []
+  }
+
+  /**
+   * Moves the map view to a specific location and optional zoom level.
+   * @param {L.LatLngExpression} latlng - Coordinates to move to.
+   * @param {number} [zoom] - Optional zoom level.
+   * @returns {void}
+   */
+  moveTo(latlng, zoom) {
+    if (!this.#map) {
+      throw Error('moveTo error: map should be initialized first')
+    }
+    if (typeof zoom === 'number') {
+      this.#map.setView(latlng, zoom)
+    } else {
+      this.#map.panTo(latlng)
+    }
   }
 
   /**
