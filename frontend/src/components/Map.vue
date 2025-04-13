@@ -19,17 +19,9 @@ onMounted(() => {
   osmap.registerTileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    maxZoom: 19,
+    maxZoom: 25,
     minZoom: 5,
   })
-
-  setTimeout(() => {
-    osmap.moveTo([51.505, -0.09], 10)
-    const markers = osmap.getMarkers()
-    console.log(markers[0].marker.getLatLng())
-    const markerLatLng = markers[0].marker.getLatLng()
-    osmap.moveToMarker(markers[0].id, [markerLatLng.lat, markerLatLng.lng], 18)
-  }, 4000)
 
   osmap.controller.subscribeBBoxChange()
 
