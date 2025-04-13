@@ -137,6 +137,9 @@ export class OSMap {
 
     return createdMarkers.map((item) => item.marker)
   }
+
+  mergeMarkers(newMarkers) {}
+
   /**
    * Clears all markers from the map and the cluster group.
    * @returns {void}

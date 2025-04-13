@@ -24,7 +24,6 @@ onMounted(() => {
   })
 
   setTimeout(() => {
-    osmap.moveTo([51.505, -0.09], 10)
     const markers = osmap.getMarkers()
     console.log(markers[0].marker.getLatLng())
     const markerLatLng = markers[0].marker.getLatLng()
