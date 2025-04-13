@@ -1,6 +1,6 @@
 import L from 'leaflet'
 
-class OSMap {
+export class OSMap {
   #container = null
   /** @type {L.Map} */
   #map = null

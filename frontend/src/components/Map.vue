@@ -1,9 +1,12 @@
 <script setup>
 import { ref, onMounted, onUnmounted, inject } from 'vue'
+import { OSMap } from '@/utils/map'
 
+/** @type {OSMap} */
 const osmap = inject('osmap')
 
 const mapContainer = ref(null)
+const locationListener = ref(null)
 
 onMounted(() => {
   osmap.registerContainer(mapContainer.value)
@@ -16,12 +19,6 @@ onMounted(() => {
     maxZoom: 19,
     minZoom: 5,
   })
-
-  const marker = osmap.addMarker([49.842957, 24.031111], null, {
-    content: 'Lviv city center',
-  })
-
-  marker.openPopup()
 })
 
 onUnmounted(() => {
