@@ -27,6 +27,14 @@ onMounted(() => {
 onUnmounted(() => {
   osmap.remove()
 })
+
+const resize = () => {
+  if (osmap.map) {
+    osmap.map.invalidateSize()
+  }
+}
+
+defineExpose({ resize })
 </script>
 <template>
   <div class="map-container" ref="mapContainer"></div>

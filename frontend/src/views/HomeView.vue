@@ -7,27 +7,27 @@
   />
   <div class="main-content" :style="mainContentStyle">
     <div class="main-header">
-      <div class="header-title">Map Explorer</div>
+      <div class="header-title">Barrier Free</div>
       <div class="header-actions">
-        <el-button type="primary" :icon="Search">Search</el-button>
-        <el-button type="success" :icon="Location">My Location</el-button>
+        <user-profile />
       </div>
     </div>
 
-    <map-view />
+    <map-view ref="mapViewRef" />
   </div>
 </template>
 
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
 import MapView from '@/components/Map.vue'
-import { ref, computed, inject } from 'vue'
-import { Search, Location } from '@element-plus/icons-vue'
+import UserProfile from '@/components/UserProfile.vue'
+import { ref, computed } from 'vue'
 import 'leaflet/dist/leaflet.css'
 
 const collapsed = ref(false)
 const sidebarWidth = ref('20%')
 const collapsedWidth = ref('4px')
+const mapViewRef = ref(null)
 
 const mainContentStyle = computed(() => {
   return {
@@ -40,7 +40,9 @@ const mainContentStyle = computed(() => {
 const toggleSidebar = () => {
   collapsed.value = !collapsed.value
   setTimeout(() => {
-    $osmap.resize()
+    if (mapViewRef.value) {
+      mapViewRef.value.resize()
+    }
   }, 300)
 }
 </script>
