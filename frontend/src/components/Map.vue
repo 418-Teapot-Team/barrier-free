@@ -13,19 +13,24 @@ onMounted(() => {
 
   osmap.initialize([49.842957, 24.031111], 13)
 
-  osmap.registerTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  osmap.registerTileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     maxZoom: 19,
     minZoom: 5,
   })
 
+  osmap.controller.subscribeBBoxChange()
+
   osmap.controller.on('bbox-changed', (bbox) => {
-    console.log(bbox)
+    console.log('bbox', bbox)
   })
+
+  osmap.controller.triggerChangeBBox()
 })
 
 onUnmounted(() => {
+  osmap.controller.unsubscribeBBoxChange()
   osmap.remove()
 })
 

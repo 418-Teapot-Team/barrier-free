@@ -169,15 +169,15 @@ export class OSMapController extends EventEmitter {
     this.mapInstance = mapInstance
   }
 
-  listenBBoxChange() {
-    const map = mapInstance._getMapInstance()
+  subscribeBBoxChange() {
+    const map = this.mapInstance._getMapInstance()
 
     if (!map) {
       throw new Error('OSMapController error: Map is not initialized')
     }
 
     const triggerBBoxChange = () => {
-      const bbox = mapInstance.getBBox()
+      const bbox = this.mapInstance.getBBox()
       this.emit('bbox-changed', bbox)
     }
 
@@ -197,11 +197,11 @@ export class OSMapController extends EventEmitter {
   /**
    * Clean up all events
    */
-  destroy() {
+  unsubscribeBBoxChange() {
     const map = this.mapInstance._getMapInstance()
     map.off('moveend')
     map.off('zoomend')
     map.off('resize')
-    this.removeAllListeners()
+    this.removeListeners('bbox-changed')
   }
 }
