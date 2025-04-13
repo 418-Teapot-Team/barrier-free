@@ -187,10 +187,8 @@ export class OSMap {
     }
     this.#controller.setLock(true)
     this.moveTo(latlng, zoom)
-    console.log('moveToMarker')
     this.#controller.triggerChangeBBox(() => {
       const marker = this.#markers.find((item) => +item.id === +id)
-      console.log('mrkr', marker)
       if (marker) {
         marker.marker.openPopup()
       }
