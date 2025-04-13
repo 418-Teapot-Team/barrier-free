@@ -170,6 +170,10 @@ export class OSMap {
     return createdMarkers.map((item) => item.marker)
   }
 
+  /**
+   * Override some markers
+   * @param {Array<{id: string | number, marker: L.Marker}>}
+   */
   mergeMarkers(newMarkers) {}
 
   /**
@@ -266,7 +270,7 @@ export class OSMap {
         profile,
         useHints: false,
         steps: true,
-        alternatives: true,
+        alternatives: false,
       }),
       lineOptions: {
         styles: [{ color: 'blue', opacity: 0.7, weight: 5 }],
