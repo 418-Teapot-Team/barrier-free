@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import Path
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRouter
+from pydantic import TypeAdapter
 from starlette import status
 
 from api.db.tables import UserDisability
@@ -11,7 +12,7 @@ from api.state import CurrentUser, DbConn
 
 from ...db.tables.users import UserRole
 from . import services
-from .schemas import CreateNodeCommentBody, UpdateNodeBody
+from .schemas import CreateNodeCommentBody, NodeSchema, UpdateNodeBody
 
 router = APIRouter()
 
@@ -51,6 +52,14 @@ async def delete_comment(
         db_conn=db_conn,
         user_id=user.id,
         comment_id=id,
+    )
+
+
+@router.get("/nodes")
+async def list_nodes(db_conn: DbConn):
+    nodes = await services.list_nodes(db_conn=db_conn)
+    return JSONResponse(
+        content=TypeAdapter(list[NodeSchema]).dump_python(nodes, mode="json")
     )
 
 
