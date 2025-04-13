@@ -1,8 +1,14 @@
 <script setup>
-import { reactive, ref, computed, watch, inject } from 'vue'
-import { ArrowLeft, ArrowRight, Search } from '@element-plus/icons-vue'
+import { ref, computed, watch, inject } from 'vue'
+import { ArrowLeft, ArrowRight, Search, Plus, Delete } from '@element-plus/icons-vue'
 import { useSearchStore } from '../stores/search'
 
+// Define component name to satisfy multi-word component name rule
+defineOptions({
+  name: 'AppSidebar'
+})
+
+// Rename component in file name later to satisfy multi-word component name rule
 const osmap = inject('osmap')
 
 const { collapsed, collapsedWidth, sidebarWidth } = defineProps({
@@ -34,7 +40,10 @@ const handleSearch = (query) => {
 }
 
 watch(() => searchStore.searchQuery, (newQuery) => {
-  handleSearch(newQuery)
+  // Only trigger search if not in route builder search mode
+  if (activeSearchIndex.value === null) {
+    handleSearch(newQuery)
+  }
 })
 
 const handleSelectLocation = (location) => {
@@ -45,22 +54,66 @@ const handleSelectLocation = (location) => {
   searchStore.searchResults = [];
 }
 
-const categories = [
-  { value: 'option1', label: 'Option 1' },
-  { value: 'option2', label: 'Option 2' },
-  { value: 'option3', label: 'Option 3' },
-]
+// Route builder functionality
+const routePoints = ref([
+  { query: '', location: null },
+  { query: '', location: null }
+])
 
-const form = reactive({
-  name: '',
-  category: '',
-  date: '',
-  range: 50,
-  options: [],
-  switch: false,
-})
+const activeSearchIndex = ref(null)
 
-const uploadFiles = ref([])
+const addRoutePoint = () => {
+  routePoints.value.push({ query: '', location: null })
+}
+
+const removeRoutePoint = (index) => {
+  if (routePoints.value.length > 2) {
+    routePoints.value.splice(index, 1)
+  }
+}
+
+const setActiveSearch = (index) => {
+  activeSearchIndex.value = index
+}
+
+const handleRoutePointSearch = (query, index) => {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    searchStore.searchLocations(query)
+    setActiveSearch(index)
+  }, 300)
+}
+
+const selectLocationForRoutePoint = (location, index) => {
+  const [longitude, latitude] = location.geometry.coordinates;
+  routePoints.value[index] = {
+    query: location.properties.name,
+    location: {
+      lon: longitude,
+      lat: latitude,
+      osm_id: location.properties.osm_id,
+      name: location.properties.name
+    }
+  }
+  osmap.moveTo([latitude, longitude], 20);
+  searchStore.searchResults = [];
+  activeSearchIndex.value = null;
+}
+
+const buildRoute = () => {
+  // Check if at least 2 points are selected
+  const validPoints = routePoints.value.filter(point => point.location !== null);
+  
+  if (validPoints.length < 2) {
+    alert('Please select at least 2 locations for the route');
+    return;
+  }
+  
+  console.log('Route points:', validPoints.map(point => point.location));
+  osmap.buildRoute(validPoints.map(point => [point.location.lat, point.location.lon]), {
+    vehicle: 'foot',
+  });
+}
 
 const collapseBtnStyle = computed(() => {
   const btnSize = 20
@@ -68,10 +121,6 @@ const collapseBtnStyle = computed(() => {
     left: collapsed ? collapsedWidth : `calc(${sidebarWidth} - ${btnSize / 2}px)`,
   }
 })
-
-const handleFileChange = (file) => {
-  uploadFiles.value.push(file)
-}
 </script>
 <template>
   <transition name="slide">
@@ -85,18 +134,19 @@ const handleFileChange = (file) => {
             placeholder="Search for a location"
             prefix-icon="Search"
             clearable
+            @focus="activeSearchIndex = null"
           >
             <template #prefix>
               <el-icon><Search /></el-icon>
             </template>
           </el-input>
           
-          <!-- Search results -->
-          <div v-if="searchStore.isLoading" class="search-results-loading">
+          <!-- Search results - only show when not in route builder search mode -->
+          <div v-if="activeSearchIndex === null && searchStore.isLoading" class="search-results-loading">
             <el-skeleton :rows="3" animated />
           </div>
           
-          <div v-else-if="searchStore.searchResults.length > 0" class="search-results">
+          <div v-else-if="activeSearchIndex === null && searchStore.searchResults.length > 0" class="search-results">
             <el-scrollbar height="250px">
               <div 
                 v-for="(result, index) in searchStore.searchResults" 
@@ -110,72 +160,86 @@ const handleFileChange = (file) => {
                   {{ result.properties.state && result.properties.country ? ',' : '' }}
                   {{ result.properties.country || '' }}
                 </div>
-                <div class="result-type">{{ result.properties.type }}</div>
+                <div class="result-type">{{ result.properties?.type }}</div>
               </div>
             </el-scrollbar>
           </div>
           
-          <div v-if="searchStore.error" class="search-error">
+          <div v-if="activeSearchIndex === null && searchStore.error" class="search-error">
             {{ searchStore.error }}
           </div>
         </div>
 
-        <!-- <el-form label-position="top" label-width="100px" class="sidebar-form">
-          <el-form-item label="Name">
-            <el-input placeholder="Enter your name" v-model="form.name"></el-input>
-          </el-form-item>
-
-          <el-form-item label="Category">
-            <el-select v-model="form.category" placeholder="Select category" style="width: 100%">
-              <el-option
-                v-for="item in categories"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              ></el-option>
-            </el-select>
-          </el-form-item>
-
-          <el-form-item label="Date">
-            <el-date-picker
-              v-model="form.date"
-              type="date"
-              placeholder="Pick a date"
-              style="width: 100%"
-            ></el-date-picker>
-          </el-form-item>
-
-          <el-form-item label="Range">
-            <el-slider v-model="form.range"></el-slider>
-          </el-form-item>
-
-          <el-form-item label="Options">
-            <el-checkbox-group v-model="form.options">
-              <el-checkbox label="Option 1"></el-checkbox>
-              <el-checkbox label="Option 2"></el-checkbox>
-            </el-checkbox-group>
-          </el-form-item>
-
-          <el-form-item label="Switch">
-            <el-switch v-model="form.switch"></el-switch>
-          </el-form-item>
-
-          <el-form-item label="Upload">
-            <el-upload
-              class="upload-demo"
-              action="#"
-              :auto-upload="false"
-              :on-change="handleFileChange"
+        <!-- Route Builder Section -->
+        <div class="route-builder">
+          <h3>Route Builder</h3>
+          
+          <div 
+            v-for="(point, index) in routePoints" 
+            :key="index"
+            class="route-point"
+          >
+            <div class="route-point-header">
+              <span>Location {{ index + 1 }}</span>
+              <el-button 
+                v-if="routePoints.length > 2" 
+                type="danger" 
+                circle 
+                size="small"
+                @click="removeRoutePoint(index)"
+              >
+                <el-icon><Delete /></el-icon>
+              </el-button>
+            </div>
+            
+            <el-input
+              v-model="point.query"
+              :placeholder="`Enter location ${index + 1}`"
+              clearable
+              @input="handleRoutePointSearch(point.query, index)"
+              @focus="setActiveSearch(index)"
             >
-              <el-button size="small" type="primary">Click to upload</el-button>
-            </el-upload>
-          </el-form-item>
-
-          <el-form-item>
-            <el-button type="primary">Submit</el-button>
-            <el-button>Cancel</el-button>
-          </el-form-item>
-        </el-form> -->
+              <template #prefix>
+                <el-icon><Search /></el-icon>
+              </template>
+            </el-input>
+            
+            <div v-if="point.location" class="selected-location">
+              <div class="location-name">{{ point.location.name }}</div>
+              <div class="location-coordinates">
+                {{ point.location.lat.toFixed(6) }}, {{ point.location.lon.toFixed(6) }}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Route point search results -->
+          <div v-if="activeSearchIndex !== null && searchStore.searchResults.length > 0" class="search-results">
+            <el-scrollbar height="250px">
+              <div 
+                v-for="(result, index) in searchStore.searchResults" 
+                :key="index"
+                class="search-result-item"
+                @click="selectLocationForRoutePoint(result, activeSearchIndex)"
+              >
+                <div class="result-name">{{ result.properties.name }}</div>
+                <div class="result-details" v-if="result.properties.state || result.properties.country">
+                  {{ result.properties.state || '' }}
+                  {{ result.properties.state && result.properties.country ? ',' : '' }}
+                  {{ result.properties.country || '' }}
+                </div>
+                <div class="result-type">{{ result.properties?.type }}</div>
+              </div>
+            </el-scrollbar>
+          </div>
+          
+          <div class="route-actions">
+            <el-button @click="addRoutePoint" type="primary" plain>
+              <el-icon><Plus /></el-icon>
+              Add Location
+            </el-button>
+            <el-button @click="buildRoute" type="success">Build Route</el-button>
+          </div>
+        </div>
       </div>
     </div>
   </transition>
@@ -294,5 +358,47 @@ const handleFileChange = (file) => {
   margin-top: 8px;
   color: #f56c6c;
   font-size: 0.85em;
+}
+
+/* Route Builder Styles */
+.route-builder {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e4e7ed;
+}
+
+.route-point {
+  margin-bottom: 16px;
+  
+  &-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+}
+
+.selected-location {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: #f0f9eb;
+  border-radius: 4px;
+  border-left: 3px solid #67c23a;
+  
+  .location-name {
+    font-weight: bold;
+  }
+  
+  .location-coordinates {
+    font-size: 0.85em;
+    color: #606266;
+    margin-top: 4px;
+  }
+}
+
+.route-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
 }
 </style>
