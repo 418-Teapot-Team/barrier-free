@@ -1,6 +1,9 @@
 <script setup>
-import { reactive, ref, computed } from 'vue'
-import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
+import { reactive, ref, computed, watch, inject } from 'vue'
+import { ArrowLeft, ArrowRight, Search } from '@element-plus/icons-vue'
+import { useSearchStore } from '../stores/search'
+
+const osmap = inject('osmap')
 
 const { collapsed, collapsedWidth, sidebarWidth } = defineProps({
   collapsed: {
@@ -18,6 +21,29 @@ const { collapsed, collapsedWidth, sidebarWidth } = defineProps({
 })
 
 defineEmits(['toggleSidebar'])
+
+const searchStore = useSearchStore()
+
+// debounce function for search
+let searchTimeout = null
+const handleSearch = (query) => {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    searchStore.searchLocations(query)
+  }, 300)
+}
+
+watch(() => searchStore.searchQuery, (newQuery) => {
+  handleSearch(newQuery)
+})
+
+const handleSelectLocation = (location) => {
+  const [longitude, latitude] = location.geometry.coordinates;
+  osmap.moveTo([latitude, longitude], 20);
+  
+  // searchStore.setQueryWithoutSearch(location.properties.name);
+  searchStore.searchResults = [];
+}
 
 const categories = [
   { value: 'option1', label: 'Option 1' },
@@ -52,8 +78,49 @@ const handleFileChange = (file) => {
     <div v-if="!collapsed" class="sidebar" :style="{ width: sidebarWidth }">
       <div class="sidebar-content">
         <h2 class="sidebar-title">Dashboard</h2>
+        
+        <div class="search-container">
+          <el-input
+            v-model="searchStore.searchQuery"
+            placeholder="Search for a location"
+            prefix-icon="Search"
+            clearable
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+          
+          <!-- Search results -->
+          <div v-if="searchStore.isLoading" class="search-results-loading">
+            <el-skeleton :rows="3" animated />
+          </div>
+          
+          <div v-else-if="searchStore.searchResults.length > 0" class="search-results">
+            <el-scrollbar height="250px">
+              <div 
+                v-for="(result, index) in searchStore.searchResults" 
+                :key="index"
+                class="search-result-item"
+                @click="handleSelectLocation(result)"
+              >
+                <div class="result-name">{{ result.properties.name }}</div>
+                <div class="result-details" v-if="result.properties.state || result.properties.country">
+                  {{ result.properties.state || '' }}
+                  {{ result.properties.state && result.properties.country ? ',' : '' }}
+                  {{ result.properties.country || '' }}
+                </div>
+                <div class="result-type">{{ result.properties.type }}</div>
+              </div>
+            </el-scrollbar>
+          </div>
+          
+          <div v-if="searchStore.error" class="search-error">
+            {{ searchStore.error }}
+          </div>
+        </div>
 
-        <el-form label-position="top" label-width="100px" class="sidebar-form">
+        <!-- <el-form label-position="top" label-width="100px" class="sidebar-form">
           <el-form-item label="Name">
             <el-input placeholder="Enter your name" v-model="form.name"></el-input>
           </el-form-item>
@@ -108,7 +175,7 @@ const handleFileChange = (file) => {
             <el-button type="primary">Submit</el-button>
             <el-button>Cancel</el-button>
           </el-form-item>
-        </el-form>
+        </el-form> -->
       </div>
     </div>
   </transition>
@@ -173,5 +240,59 @@ const handleFileChange = (file) => {
   &-leave-to {
     transform: translateX(-100%);
   }
+}
+
+.search-container {
+  margin-bottom: 20px;
+}
+
+.search-results {
+  margin-top: 8px;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  background: #fff;
+}
+
+.search-result-item {
+  padding: 10px;
+  border-bottom: 1px solid #e4e7ed;
+  cursor: pointer;
+  
+  &:hover {
+    background-color: #f5f7fa;
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.result-name {
+  font-weight: bold;
+}
+
+.result-details {
+  font-size: 0.85em;
+  color: #606266;
+}
+
+.result-type {
+  font-size: 0.75em;
+  color: #909399;
+  text-transform: capitalize;
+}
+
+.search-results-loading {
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+}
+
+.search-error {
+  margin-top: 8px;
+  color: #f56c6c;
+  font-size: 0.85em;
 }
 </style>
