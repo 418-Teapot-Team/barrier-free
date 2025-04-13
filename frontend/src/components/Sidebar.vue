@@ -5,7 +5,7 @@ import { useSearchStore } from '../stores/search'
 
 // Define component name to satisfy multi-word component name rule
 defineOptions({
-  name: 'AppSidebar'
+  name: 'AppSidebar',
 })
 
 // Rename component in file name later to satisfy multi-word component name rule
@@ -39,25 +39,28 @@ const handleSearch = (query) => {
   }, 300)
 }
 
-watch(() => searchStore.searchQuery, (newQuery) => {
-  // Only trigger search if not in route builder search mode
-  if (activeSearchIndex.value === null) {
-    handleSearch(newQuery)
-  }
-})
+watch(
+  () => searchStore.searchQuery,
+  (newQuery) => {
+    // Only trigger search if not in route builder search mode
+    if (activeSearchIndex.value === null) {
+      handleSearch(newQuery)
+    }
+  },
+)
 
 const handleSelectLocation = (location) => {
-  const [longitude, latitude] = location.geometry.coordinates;
-  osmap.moveTo([latitude, longitude], 20);
-  
+  const [longitude, latitude] = location.geometry.coordinates
+  osmap.moveToMarker(location.properties.osm_id, [latitude, longitude], 19)
+
   // searchStore.setQueryWithoutSearch(location.properties.name);
-  searchStore.searchResults = [];
+  searchStore.searchResults = []
 }
 
 // Route builder functionality
 const routePoints = ref([
   { query: '', location: null },
-  { query: '', location: null }
+  { query: '', location: null },
 ])
 
 const activeSearchIndex = ref(null)
@@ -85,34 +88,40 @@ const handleRoutePointSearch = (query, index) => {
 }
 
 const selectLocationForRoutePoint = (location, index) => {
-  const [longitude, latitude] = location.geometry.coordinates;
+  const [longitude, latitude] = location.geometry.coordinates
   routePoints.value[index] = {
     query: location.properties.name,
     location: {
       lon: longitude,
       lat: latitude,
       osm_id: location.properties.osm_id,
-      name: location.properties.name
-    }
+      name: location.properties.name,
+    },
   }
-  osmap.moveTo([latitude, longitude], 20);
-  searchStore.searchResults = [];
-  activeSearchIndex.value = null;
+  osmap.moveTo([latitude, longitude], 20)
+  searchStore.searchResults = []
+  activeSearchIndex.value = null
 }
 
 const buildRoute = () => {
   // Check if at least 2 points are selected
-  const validPoints = routePoints.value.filter(point => point.location !== null);
-  
+  const validPoints = routePoints.value.filter((point) => point.location !== null)
+
   if (validPoints.length < 2) {
-    alert('Please select at least 2 locations for the route');
-    return;
+    alert('Please select at least 2 locations for the route')
+    return
   }
-  
-  console.log('Route points:', validPoints.map(point => point.location));
-  osmap.buildRoute(validPoints.map(point => [point.location.lat, point.location.lon]), {
-    vehicle: 'foot',
-  });
+
+  console.log(
+    'Route points:',
+    validPoints.map((point) => point.location),
+  )
+  osmap.buildRoute(
+    validPoints.map((point) => [point.location.lat, point.location.lon]),
+    {
+      vehicle: 'foot',
+    },
+  )
 }
 
 const collapseBtnStyle = computed(() => {
@@ -127,7 +136,7 @@ const collapseBtnStyle = computed(() => {
     <div v-if="!collapsed" class="sidebar" :style="{ width: sidebarWidth }">
       <div class="sidebar-content">
         <h2 class="sidebar-title">Dashboard</h2>
-        
+
         <div class="search-container">
           <el-input
             v-model="searchStore.searchQuery"
@@ -140,22 +149,31 @@ const collapseBtnStyle = computed(() => {
               <el-icon><Search /></el-icon>
             </template>
           </el-input>
-          
+
           <!-- Search results - only show when not in route builder search mode -->
-          <div v-if="activeSearchIndex === null && searchStore.isLoading" class="search-results-loading">
+          <div
+            v-if="activeSearchIndex === null && searchStore.isLoading"
+            class="search-results-loading"
+          >
             <el-skeleton :rows="3" animated />
           </div>
-          
-          <div v-else-if="activeSearchIndex === null && searchStore.searchResults.length > 0" class="search-results">
+
+          <div
+            v-else-if="activeSearchIndex === null && searchStore.searchResults.length > 0"
+            class="search-results"
+          >
             <el-scrollbar height="250px">
-              <div 
-                v-for="(result, index) in searchStore.searchResults" 
+              <div
+                v-for="(result, index) in searchStore.searchResults"
                 :key="index"
                 class="search-result-item"
                 @click="handleSelectLocation(result)"
               >
                 <div class="result-name">{{ result.properties.name }}</div>
-                <div class="result-details" v-if="result.properties.state || result.properties.country">
+                <div
+                  class="result-details"
+                  v-if="result.properties.state || result.properties.country"
+                >
                   {{ result.properties.state || '' }}
                   {{ result.properties.state && result.properties.country ? ',' : '' }}
                   {{ result.properties.country || '' }}
@@ -164,7 +182,7 @@ const collapseBtnStyle = computed(() => {
               </div>
             </el-scrollbar>
           </div>
-          
+
           <div v-if="activeSearchIndex === null && searchStore.error" class="search-error">
             {{ searchStore.error }}
           </div>
@@ -173,25 +191,21 @@ const collapseBtnStyle = computed(() => {
         <!-- Route Builder Section -->
         <div class="route-builder">
           <h3>Route Builder</h3>
-          
-          <div 
-            v-for="(point, index) in routePoints" 
-            :key="index"
-            class="route-point"
-          >
+
+          <div v-for="(point, index) in routePoints" :key="index" class="route-point">
             <div class="route-point-header">
               <span>Location {{ index + 1 }}</span>
-              <el-button 
-                v-if="routePoints.length > 2" 
-                type="danger" 
-                circle 
+              <el-button
+                v-if="routePoints.length > 2"
+                type="danger"
+                circle
                 size="small"
                 @click="removeRoutePoint(index)"
               >
                 <el-icon><Delete /></el-icon>
               </el-button>
             </div>
-            
+
             <el-input
               v-model="point.query"
               :placeholder="`Enter location ${index + 1}`"
@@ -203,7 +217,7 @@ const collapseBtnStyle = computed(() => {
                 <el-icon><Search /></el-icon>
               </template>
             </el-input>
-            
+
             <div v-if="point.location" class="selected-location">
               <div class="location-name">{{ point.location.name }}</div>
               <div class="location-coordinates">
@@ -211,18 +225,24 @@ const collapseBtnStyle = computed(() => {
               </div>
             </div>
           </div>
-          
+
           <!-- Route point search results -->
-          <div v-if="activeSearchIndex !== null && searchStore.searchResults.length > 0" class="search-results">
+          <div
+            v-if="activeSearchIndex !== null && searchStore.searchResults.length > 0"
+            class="search-results"
+          >
             <el-scrollbar height="250px">
-              <div 
-                v-for="(result, index) in searchStore.searchResults" 
+              <div
+                v-for="(result, index) in searchStore.searchResults"
                 :key="index"
                 class="search-result-item"
                 @click="selectLocationForRoutePoint(result, activeSearchIndex)"
               >
                 <div class="result-name">{{ result.properties.name }}</div>
-                <div class="result-details" v-if="result.properties.state || result.properties.country">
+                <div
+                  class="result-details"
+                  v-if="result.properties.state || result.properties.country"
+                >
                   {{ result.properties.state || '' }}
                   {{ result.properties.state && result.properties.country ? ',' : '' }}
                   {{ result.properties.country || '' }}
@@ -231,7 +251,7 @@ const collapseBtnStyle = computed(() => {
               </div>
             </el-scrollbar>
           </div>
-          
+
           <div class="route-actions">
             <el-button @click="addRoutePoint" type="primary" plain>
               <el-icon><Plus /></el-icon>
@@ -322,11 +342,11 @@ const collapseBtnStyle = computed(() => {
   padding: 10px;
   border-bottom: 1px solid #e4e7ed;
   cursor: pointer;
-  
+
   &:hover {
     background-color: #f5f7fa;
   }
-  
+
   &:last-child {
     border-bottom: none;
   }
@@ -369,7 +389,7 @@ const collapseBtnStyle = computed(() => {
 
 .route-point {
   margin-bottom: 16px;
-  
+
   &-header {
     display: flex;
     justify-content: space-between;
@@ -384,11 +404,11 @@ const collapseBtnStyle = computed(() => {
   background-color: #f0f9eb;
   border-radius: 4px;
   border-left: 3px solid #67c23a;
-  
+
   .location-name {
     font-weight: bold;
   }
-  
+
   .location-coordinates {
     font-size: 0.85em;
     color: #606266;

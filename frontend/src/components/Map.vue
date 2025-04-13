@@ -23,13 +23,6 @@ onMounted(() => {
     minZoom: 5,
   })
 
-  setTimeout(() => {
-    const markers = osmap.getMarkers()
-    console.log(markers[0].marker.getLatLng())
-    const markerLatLng = markers[0].marker.getLatLng()
-    osmap.moveToMarker(markers[0].id, [markerLatLng.lat, markerLatLng.lng], 18)
-  }, 4000)
-
   osmap.controller.subscribeBBoxChange()
 
   osmap.controller.on('bbox-changed', async (bbox) => {

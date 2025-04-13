@@ -166,14 +166,11 @@ export class OSMap {
     if (!this.#map) {
       throw Error('moveTo error: map should be initialized first')
     }
-
-    this.#controller.triggerChangeBBox(() => {
-      if (typeof zoom === 'number') {
-        this.#map.setView(latlng, zoom)
-      } else {
-        this.#map.panTo(latlng)
-      }
-    })
+    if (typeof zoom === 'number') {
+      this.#map.setView(latlng, zoom)
+    } else {
+      this.#map.panTo(latlng)
+    }
   }
 
   /**
@@ -184,14 +181,16 @@ export class OSMap {
    * @returns {void}
    */
   moveToMarker(id, latlng, zoom) {
+    console.log(id, latlng, zoom)
     if (!this.#map) {
       throw Error('moveToMarker error: map should be initialized first')
     }
-    this.moveTo(latlng, zoom)
     this.#controller.setLock(true)
-
+    this.moveTo(latlng, zoom)
+    console.log('moveToMarker')
     this.#controller.triggerChangeBBox(() => {
       const marker = this.#markers.find((item) => +item.id === +id)
+      console.log('mrkr', marker)
       if (marker) {
         marker.marker.openPopup()
       }
