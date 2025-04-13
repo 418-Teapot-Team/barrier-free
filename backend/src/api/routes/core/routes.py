@@ -16,6 +16,7 @@ from .schemas import (
     CreateNodeAccessibilityPropositionBody,
     CreateNodeCommentBody,
     NodeSchema,
+    PredictAccessibilityBody,
     UpdateNodeBody,
 )
 
@@ -124,3 +125,8 @@ async def delete_accessibility_proposition(
         user_id=user.id,
         proposition_id=proposition_id,
     )
+
+
+@router.post("/predict_accessibility")
+async def predict_accessibility(body: PredictAccessibilityBody):
+    return await services.predict_accessibility(text=body.text)

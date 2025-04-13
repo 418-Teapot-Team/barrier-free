@@ -1,3 +1,4 @@
+from openai import AsyncClient
 from pydantic import TypeAdapter
 from sqlalchemy import JSON, func, sql
 from sqlalchemy.dialects.postgresql import aggregate_order_by, insert
@@ -10,6 +11,7 @@ from api.db.tables.core import (
     NodeComment,
 )
 from api.db.tables.users import User
+from api.settings import settings
 
 from ...db.utils import empty_array, json_build_object
 from .schemas import NodeSchema
@@ -188,3 +190,36 @@ async def delete_accessibility_proposition(
     )
     await db_conn.execute(query)
     await db_conn.commit()
+
+
+async def predict_accessibility(text: str) -> NodeAccessibility:
+    client = AsyncClient(
+        api_key=settings.OPENAI_API_KEY,
+    )
+    prompt = f"""\
+You are an inclusivity expert with in-depth knowledge of accessibility standards for public and private spaces. Your task is to evaluate descriptions of locations and predict the level of accessibility based on the details provided. The possible accessibility levels are:
+
+- FULL: The location is fully accessible to all, including people with disabilities. It has all necessary facilities and modifications, such as ramps, elevators, accessible restrooms, clear signage, and wide entryways.
+- PARTIAL: The location has some accessible features but still presents obstacles or limitations that may prevent full access for some people with disabilities.
+- NONE: The location is not accessible. It lacks adequate facilities, modifications, or other features needed for accessibility.
+
+When you are provided with a location description, analyze it and predict one of the following: FULL, PARTIAL, or NONE. Output only a single strings that represents the accessibility level with no additional details and no double quotes around the result.
+
+Example Input:
+"The building has a wheelchair ramp at the entrance, an elevator that goes to all floors, and accessible restrooms. However, the parking area is at a considerable distance and some doorways seem narrow."
+
+Expected Output:
+"PARTIAL"
+
+Now, please predict the accessibility level and provide a short explanation for the following description:
+```{text}```
+"""
+
+    response = await client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+    )
+    result = response.choices[0].message.content
+    assert result is not None
+    result = result.strip('"')
+    return NodeAccessibility(result.lower())

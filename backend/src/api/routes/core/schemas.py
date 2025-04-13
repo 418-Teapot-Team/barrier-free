@@ -47,3 +47,7 @@ class CreateNodeAccessibilityPropositionBody(BaseModel):
     osm_id: str
     text: str
     accessibility: NodeAccessibility
+
+
+class PredictAccessibilityBody(BaseModel):
+    text: str
