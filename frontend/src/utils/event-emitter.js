@@ -67,6 +67,33 @@ export class EventEmitter {
   }
 
   /**
+   * Emits an event and waits for all listeners to complete, including async listeners.
+   * Returns a promise that resolves after all listeners have completed.
+   *
+   * @param {string} event - The name of the event to emit.
+   * @param {...any} args - Arguments passed to each listener.
+   * @returns {Promise<void>} - A promise that resolves when all listeners have completed.
+   */
+  async emitAsync(event, ...args) {
+    if (!this.events[event]) return
+
+    // Create an array of promises from all listeners
+    const listenerPromises = [...this.events[event]].map((listener) => {
+      try {
+        const result = listener(...args)
+        // Handle both synchronous listeners and those that return promises
+        return result instanceof Promise ? result : Promise.resolve(result)
+      } catch (error) {
+        // Prevent one failed listener from breaking the entire chain
+        return Promise.reject(error)
+      }
+    })
+
+    // Wait for all listeners to complete, even if some fail
+    await Promise.allSettled(listenerPromises)
+  }
+
+  /**
    * Removes all listeners for all events.
    */
   removeAllListeners() {
