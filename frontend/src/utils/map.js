@@ -1,5 +1,7 @@
 import L from 'leaflet'
 
+import { EventEmitter } from './event-emitter'
+
 export class OSMap {
   #container = null
   /** @type {L.Map} */
@@ -8,6 +10,9 @@ export class OSMap {
   #tileLayer = null
   /** @type {Array<L.Marker>} */
   #markers = new Array()
+
+  /** @type {OSMapController | null} */
+  #controller = null
 
   /**
    * Sets a map container
@@ -37,6 +42,8 @@ export class OSMap {
     })
 
     this.#map = L.map(this.#container, {}).setView(center, zoom)
+
+    this.#controller = new OSMapController(this)
   }
 
   /**
@@ -87,6 +94,14 @@ export class OSMap {
   }
 
   /**
+   * Returns bounding box of current map
+   * @returns {string} bbox string
+   */
+  getBBox() {
+    return this.#map.getBounds().toBBoxString()
+  }
+
+  /**
    * Resizing map invalidating its size
    * @returns {void}
    */
@@ -104,6 +119,18 @@ export class OSMap {
     if (this.#map) {
       this.#map.remove()
     }
+  }
+
+  /**
+   * Controller instance
+   * @returns {OSMapController}
+   * @throws {Error} if controller is not initialized
+   */
+  get controller() {
+    if (!this.#controller) {
+      throw Error('controller error: controller not initialized, initialize map first')
+    }
+    return this.#controller
   }
 
   /**
@@ -128,5 +155,53 @@ export class OSMapVueAdapter {
     const osmap = new OSMap()
     app.config.globalProperties.$osmap = osmap
     app.provide('osmap', osmap)
+  }
+}
+
+export class OSMapController extends EventEmitter {
+  /**
+   * @param {OSMap} mapInstance - Instance of OSMap
+   */
+  constructor(mapInstance) {
+    super()
+
+    /** @type {OSMap} */
+    this.mapInstance = mapInstance
+  }
+
+  listenBBoxChange() {
+    const map = mapInstance._getMapInstance()
+
+    if (!map) {
+      throw new Error('OSMapController error: Map is not initialized')
+    }
+
+    const triggerBBoxChange = () => {
+      const bbox = mapInstance.getBBox()
+      this.emit('bbox-changed', bbox)
+    }
+
+    map.on('moveend', triggerBBoxChange)
+    map.on('zoomend', triggerBBoxChange)
+    map.on('resize', triggerBBoxChange)
+  }
+
+  /**
+   * Manually emit bbox-changed (e.g. on init)
+   */
+  triggerChangeBBox() {
+    const bbox = this.mapInstance.getBBox()
+    this.emit('bbox-changed', bbox)
+  }
+
+  /**
+   * Clean up all events
+   */
+  destroy() {
+    const map = this.mapInstance._getMapInstance()
+    map.off('moveend')
+    map.off('zoomend')
+    map.off('resize')
+    this.removeAllListeners()
   }
 }

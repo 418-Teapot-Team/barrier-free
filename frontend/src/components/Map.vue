@@ -19,6 +19,10 @@ onMounted(() => {
     maxZoom: 19,
     minZoom: 5,
   })
+
+  osmap.controller.on('bbox-changed', (bbox) => {
+    console.log(bbox)
+  })
 })
 
 onUnmounted(() => {
