@@ -135,3 +135,6 @@ Watch Tima’s intro video here:
 ## Contact
 
 [Contact information to be added]
+
+# VIDEOS
+[link](https://drive.google.com/drive/folders/1HO2ZzTbPRUSKKdBQ0EqFLbwGTJgG_k2j?usp=sharing)
