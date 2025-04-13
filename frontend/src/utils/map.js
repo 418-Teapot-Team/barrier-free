@@ -212,15 +212,13 @@ export class OSMap {
    * @returns {void}
    */
   moveToMarker(id, latlng) {
-    console.log(id, latlng)
     if (!this.#map) {
       throw Error('moveToMarker error: map should be initialized first')
     }
     this.#controller.setLock(true)
     this.moveTo(latlng, 20)
     this.#controller.triggerChangeBBox(() => {
-      const marker = this.#markers.find((item) => +item.id === +id)
-      console.log('m', marker)
+      const marker = this.#markers.find((item) => Math.abs(+item.id) === Math.abs(+id))
       if (marker) {
         marker.marker.openPopup()
       }
@@ -477,17 +475,16 @@ function getClusterSizeCategory(count) {
 
 function getClusterColor(count) {
   const min = 1
-  const max = 100 // Adjust this as needed based on your data
+  const max = 100
   const ratio = Math.min(1, (count - min) / (max - min))
 
   const colorStops = [
-    { stop: 0.0, color: '#3498db' }, // blue
-    { stop: 0.33, color: '#2ecc71' }, // green
-    { stop: 0.66, color: '#f1c40f' }, // yellow
-    { stop: 1.0, color: '#e67e22' }, // orange
+    { stop: 0.0, color: '#3498db' },
+    { stop: 0.33, color: '#2ecc71' },
+    { stop: 0.66, color: '#f1c40f' },
+    { stop: 1.0, color: '#e67e22' },
   ]
 
-  // Find which segment the ratio falls into
   for (let i = 0; i < colorStops.length - 1; i++) {
     const start = colorStops[i]
     const end = colorStops[i + 1]
