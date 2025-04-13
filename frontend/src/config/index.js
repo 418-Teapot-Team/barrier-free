@@ -13,6 +13,9 @@ export const API_ENDPOINTS = {
     ME: `${API_URL}/auth/me`,
     DISABILITIES: `${API_URL}/disabilities`,
   },
+  NODES: `${API_URL}/nodes`,
+  ADD_COMMENT: `${API_URL}/comments`,
+  ADD_PROPOSAL: `${API_URL}/accessibility_propositions`,
 }
 
 // WheelMap API

@@ -5,6 +5,8 @@
 
         <p v-if="address" class="address">{{ address }}</p>
 
+        <!-- <p class="predicted-accessibility">{{ nodeAccessibility }}</p> -->
+
         <p v-if="node.wheelchair" class="wheelchair-status">
             Wheelchair accessibility: {{ node.wheelchair }}
         </p>
@@ -29,22 +31,27 @@
 
 <script setup>
 import { computed } from 'vue'
+// import { useCommentsStore } from '@/stores/comments'
 
 const props = defineProps({
     node: Object,
     nodeType: String
 })
 
+// const commentsStore = useCommentsStore()
 const address = computed(() => {
     return [props.node.housenumber, props.node.street, props.node.city, props.node.postcode]
         .filter(Boolean)
         .join(', ')
 })
 
+// const nodeAccessibility = computed(() =>
+//     commentsStore.getAccessibility(props.node.osm_id)
+// )
+
 const formattedType = computed(() => props.nodeType.replace('_', ' '))
 
 function sayHello() {
-    console.log(`Hello from ${props.node.name}`)
     window.showNodeModal(props.node)
 }
 </script>

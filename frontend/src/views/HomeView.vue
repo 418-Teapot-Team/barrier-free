@@ -49,7 +49,6 @@ const toggleSidebar = () => {
 }
 
 window.showNodeModal = function (node) {
-  console.log("Hello from popup!");
   nodeModalVisible.value = true
   currentNode.value = node
 }
