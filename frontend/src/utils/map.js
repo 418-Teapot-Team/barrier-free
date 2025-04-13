@@ -170,6 +170,10 @@ export class OSMap {
     return createdMarkers.map((item) => item.marker)
   }
 
+  /**
+   * Override some markers
+   * @param {Array<{id: string | number, marker: L.Marker}>}
+   */
   mergeMarkers(newMarkers) {}
 
   /**
