@@ -32,7 +32,7 @@ const formRef = ref(null)
 
 const form = reactive({
   email: '',
-  password: ''
+  password: '',
 })
 
 const rules = {
@@ -48,7 +48,6 @@ const rules = {
 
 const handleSubmit = async () => {
   if (!formRef.value) return
-  
   await formRef.value.validate(async (valid) => {
     if (valid) {
       try {
@@ -82,4 +81,4 @@ const handleCancel = () => {
   margin-top: 10px;
   font-size: 14px;
 }
-</style> 
+</style>

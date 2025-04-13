@@ -1,10 +1,6 @@
 <template>
-  <sidebar
-    :collapsed="collapsed"
-    :collapsed-width="collapsedWidth"
-    :sidebar-width="sidebarWidth"
-    @toggle-sidebar="toggleSidebar"
-  />
+  <sidebar :collapsed="collapsed" :collapsed-width="collapsedWidth" :sidebar-width="sidebarWidth"
+    @toggle-sidebar="toggleSidebar" />
   <div class="main-content" :style="mainContentStyle">
     <div class="main-header">
       <div class="header-title">Barrier Free</div>
@@ -12,6 +8,10 @@
         <user-profile />
       </div>
     </div>
+
+    <el-dialog v-model="nodeModalVisible">
+      <node-modal :node="currentNode" @success="onNodeModalSuccess" @cancel="nodeModalVisible = false" />
+    </el-dialog>
 
     <map-view ref="mapViewRef" />
   </div>
@@ -30,6 +30,8 @@ const collapsed = ref(false)
 const sidebarWidth = ref('20%')
 const collapsedWidth = ref('4px')
 const mapViewRef = ref(null)
+const nodeModalVisible = ref(false)
+const currentNode = ref(null)
 
 const mainContentStyle = computed(() => {
   return {
@@ -45,6 +47,12 @@ const toggleSidebar = () => {
     osmap.resize()
   }, 300)
 }
+
+window.showNodeModal = function (node) {
+  nodeModalVisible.value = true
+  currentNode.value = node
+}
+
 </script>
 
 <style lang="scss" scoped>

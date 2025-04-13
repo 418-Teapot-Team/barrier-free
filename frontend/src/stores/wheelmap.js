@@ -33,7 +33,7 @@ export const useWheelmapStore = defineStore('wheelmap', {
             ts: 0,
           },
         })
-
+        console.log(response.data.nodes)
         return response.data.nodes || []
       } catch (error) {
         console.error('Error fetching wheelmap nodes:', error)

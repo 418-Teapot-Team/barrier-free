@@ -13,6 +13,12 @@
       <el-form-item label="Confirm" prop="confirmPassword">
         <el-input v-model="form.confirmPassword" type="password" />
       </el-form-item>
+      <el-form-item label="Disabilities" prop="disabilities">
+        <el-select v-model="form.disabilities" multiple placeholder="Select disabilities">
+          <el-option v-for="disability in authStore.disabilities" :key="disability" :label="disability"
+            :value="disability" />
+        </el-select>
+      </el-form-item>
       <el-form-item>
         <div class="form-actions">
           <el-button @click="handleCancel">Cancel</el-button>
@@ -40,7 +46,8 @@ const form = reactive({
   name: '',
   email: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  disabilities: []
 })
 
 const validatePass = (rule, value, callback) => {
@@ -83,29 +90,32 @@ const rules = {
   confirmPassword: [
     { required: true, message: 'Please confirm your password', trigger: 'blur' },
     { validator: validatePass2, trigger: 'blur' }
+  ],
+  disabilities: [
+    { required: true, message: 'Please select at least one disability', trigger: 'change' }
   ]
 }
 
 const handleSubmit = async () => {
   if (!formRef.value) return
-  
+
   await formRef.value.validate(async (valid) => {
     if (valid) {
       try {
         const { confirmPassword, ...userData } = form
-        
+
         if (!userData.name) {
           userData.name = userData.email.split('@')[0]
         }
-        
+
         await authStore.register(userData)
-        
+
         // Now login to get the token
         await authStore.login({
           email: userData.email,
           password: userData.password
         })
-        
+
         emit('success')
       } catch (error) {
         console.error('Registration failed:', error)
@@ -135,4 +145,4 @@ const handleCancel = () => {
   margin-top: 10px;
   font-size: 14px;
 }
-</style> 
+</style>
