@@ -23,6 +23,26 @@ onMounted(() => {
     minZoom: 5,
   })
 
+  setTimeout(() => {
+    osmap.moveTo([51.505, -0.09], 10)
+  }, 1000)
+
+  setTimeout(() => {
+    osmap.buildRoute(
+      [
+        [51.505, -0.09],
+        [51.51, -0.1],
+      ],
+      {
+        vehicle: 'car',
+      },
+    )
+  }, 3000)
+
+  // Later, clear the route
+  // setTimeout(() => {
+  //   osmap.clearRoute()
+  // }, 7000)
   // L.Routing.control({
   //   waypoints: [
   //     L.latLng(49.842957, 24.031111),

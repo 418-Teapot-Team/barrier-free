@@ -7,9 +7,11 @@ import { EventEmitter } from './event-emitter'
 export class OSMap {
   #container = null
   /** @type {L.Map} */
+
   #map = null
   /** @type {L.TileLayer} */
   #tileLayer = null
+
   /** @type {Array<L.Marker>} */
   #markers = new Array()
 
@@ -18,6 +20,11 @@ export class OSMap {
 
   /** @type {OSMapController | null} */
   #controller = null
+
+  /**
+   * @type {L.Routing.Control | null}
+   */
+  #routeControl = null
 
   /**
    * Sets a map container
@@ -160,6 +167,74 @@ export class OSMap {
       this.#map.setView(latlng, zoom)
     } else {
       this.#map.panTo(latlng)
+    }
+  }
+
+  /**
+   * Builds a route between waypoints with a given travel mode.
+   *
+   * @param {Array<L.LatLngExpression>} waypoints - Array of coordinates to build the route through.
+   * @param {Object} [options] - Routing options.
+   * @param {'car' | 'bicycle' | 'foot'} [options.vehicle='car'] - Vehicle type for the route.
+   * @param {Object} [options.routingOptions] - Additional routing options passed to the control.
+   *
+   * @returns {void}
+   */
+  buildRoute(waypoints, options = {}) {
+    if (!this.#map) {
+      throw new Error('buildRoute error: map should be initialized first')
+    }
+
+    const vehicle = options.vehicle || 'car'
+
+    if (this.#routeControl) {
+      this.#map.removeControl(this.#routeControl)
+      this.#routeControl = null
+    }
+
+    // Map to OSRM profile
+    const profile =
+      {
+        car: 'driving',
+        bicycle: 'cycling',
+        foot: 'walking',
+      }[vehicle] || 'driving'
+
+    const serviceUrl = `https://router.project-osrm.org/route/v1`
+
+    this.#routeControl = L.Routing.control({
+      waypoints: waypoints.map((point) => L.latLng(point)),
+      router: L.Routing.osrmv1({
+        serviceUrl,
+        profile,
+        useHints: false,
+        steps: true,
+        alternatives: true,
+      }),
+      lineOptions: {
+        styles: [{ color: 'blue', opacity: 0.7, weight: 5 }],
+      },
+      show: false,
+      routeWhileDragging: false,
+      addWaypoints: false,
+      createMarker: () => null,
+      ...options.routingOptions,
+    }).addTo(this.#map)
+  }
+
+  /**
+   * Clears the current route from the map if exists.
+   *
+   * @returns {void}
+   */
+  clearRoute() {
+    if (!this.#map) {
+      throw new Error('clearRoute error: map should be initialized first')
+    }
+
+    if (this.#routeControl) {
+      this.#map.removeControl(this.#routeControl)
+      this.#routeControl = null
     }
   }
 
