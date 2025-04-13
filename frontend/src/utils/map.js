@@ -270,7 +270,7 @@ export class OSMap {
         profile,
         useHints: false,
         steps: true,
-        alternatives: true,
+        alternatives: false,
       }),
       lineOptions: {
         styles: [{ color: 'blue', opacity: 0.7, weight: 5 }],
