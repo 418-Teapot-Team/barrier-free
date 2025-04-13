@@ -12,7 +12,12 @@ from api.state import CurrentUser, DbConn
 
 from ...db.tables.users import UserRole
 from . import services
-from .schemas import CreateNodeCommentBody, NodeSchema, UpdateNodeBody
+from .schemas import (
+    CreateNodeAccessibilityPropositionBody,
+    CreateNodeCommentBody,
+    NodeSchema,
+    UpdateNodeBody,
+)
 
 router = APIRouter()
 
@@ -81,4 +86,41 @@ async def update_node(
         db_conn=db_conn,
         osm_id=osm_id,
         accessibility=body.accessibility,
+    )
+
+
+@router.post("/accessibility_propositions")
+@authenticated_route
+async def create_accessibility_proposition(
+    db_conn: DbConn,
+    user: CurrentUser,
+    body: CreateNodeAccessibilityPropositionBody,
+):
+    proposition_id = await services.create_accessibility_proposition(
+        db_conn=db_conn,
+        osm_id=body.osm_id,
+        user_id=user.id,
+        text=body.text,
+        accessibility=body.accessibility,
+    )
+    return JSONResponse(
+        content={"id": proposition_id},
+        status_code=status.HTTP_201_CREATED,
+    )
+
+
+@router.delete(
+    "/accessibility_propositions/{proposition_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+@authenticated_route
+async def delete_accessibility_proposition(
+    db_conn: DbConn,
+    user: CurrentUser,
+    proposition_id: Annotated[int, Path()],
+):
+    await services.delete_accessibility_proposition(
+        db_conn=db_conn,
+        user_id=user.id,
+        proposition_id=proposition_id,
     )

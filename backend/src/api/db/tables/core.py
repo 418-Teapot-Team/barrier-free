@@ -23,6 +23,17 @@ class NodeAccessibility(EnumMixin, StrEnum):
     NONE = "none"
 
 
+class NodeAccessibilityProposition(TableBase):
+    __tablename__ = "node_accessability_propositions"
+
+    id: Mapped[intpk]
+    osm_id: Mapped[str]
+    user_id: Mapped[int] = mapped_column(Fk(User.id, ondelete="CASCADE"))
+    text: Mapped[str]
+    accessibility: Mapped[NodeAccessibility]
+    created_at: Mapped[timestamptz_now]
+
+
 class Node(TableBase):
     __tablename__ = "nodes"
 

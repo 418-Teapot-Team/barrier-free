@@ -15,15 +15,24 @@ class UpdateNodeBody(BaseModel):
     accessibility: NodeAccessibility
 
 
-class NodeCommentUser(BaseModel):
+class UserSchema(BaseModel):
     id: int
     email: str
     disabilities: list[UserDisability]
 
 
 class NodeCommentSchema(BaseModel):
-    user: NodeCommentUser
+    id: int
+    user: UserSchema
     text: str
+    created_at: datetime
+
+
+class NodeAccessibilityPropositionSchema(BaseModel):
+    id: int
+    user: UserSchema
+    text: str
+    accessibility: NodeAccessibility
     created_at: datetime
 
 
@@ -31,3 +40,10 @@ class NodeSchema(BaseModel):
     osm_id: str
     accessibility: NodeAccessibility | None
     comments: list[NodeCommentSchema]
+    accessibility_propositions: list[NodeAccessibilityPropositionSchema]
+
+
+class CreateNodeAccessibilityPropositionBody(BaseModel):
+    osm_id: str
+    text: str
+    accessibility: NodeAccessibility
