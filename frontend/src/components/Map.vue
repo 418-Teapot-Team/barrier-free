@@ -3,7 +3,6 @@ import { ref, onMounted, onUnmounted, inject, watch } from 'vue'
 import { OSMap } from '@/utils/map'
 import { useWheelmapStore } from '@/stores/wheelmap'
 import { WheelmapMarkersMapper } from '@/utils/markers-mapper'
-import 'leaflet-routing-machine'
 
 /** @type {OSMap} */
 const osmap = inject('osmap')
@@ -24,24 +23,22 @@ onMounted(() => {
     minZoom: 5,
   })
 
-  // L.Routing.control({
-  //   waypoints: [
-  //     L.latLng(49.842957, 24.031111),
-  //     L.latLng(50.26487, 28.67669),
-  //     L.latLng(49.553516, 25.594767),
-  //   ],
-  // }).addTo(osmap._getMapInstance())
+  setTimeout(() => {
+    osmap.moveTo([51.505, -0.09], 10)
+    const markers = osmap.getMarkers()
+    console.log(markers[0].marker.getLatLng())
+    const markerLatLng = markers[0].marker.getLatLng()
+    osmap.moveToMarker(markers[0].id, [markerLatLng.lat, markerLatLng.lng], 18)
+  }, 4000)
 
   osmap.controller.subscribeBBoxChange()
 
-  osmap.controller.on('bbox-changed', (bbox) => {
-    wheelmapStore.fetchNodes(bbox).then((nodes) => {
-      osmap.clearAllMarkers()
+  osmap.controller.on('bbox-changed', async (bbox) => {
+    const nodes = await wheelmapStore.fetchNodes(bbox)
 
-      const preparedMarkers = WheelmapMarkersMapper.map(nodes)
-
-      osmap.addMarkers(preparedMarkers)
-    })
+    osmap.clearAllMarkers()
+    const preparedMarkers = WheelmapMarkersMapper.map(nodes)
+    osmap.addMarkers(preparedMarkers)
   })
 
   osmap.controller.triggerChangeBBox()

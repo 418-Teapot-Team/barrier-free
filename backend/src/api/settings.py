@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
+    OPENAI_API_KEY: str
 
     model_config = SettingsConfigDict(
         env_file=find_dotenv(".env", usecwd=True),
