@@ -34,7 +34,17 @@ async def create_comment(
     )
     cursor_result = await db_conn.execute(query)
     await db_conn.commit()
-    return cursor_result.scalar_one()
+    comment_id = cursor_result.scalar_one()
+
+    node = await get_node(db_conn=db_conn, osm_id=osm_id)
+    comments = [c.text for c in node.comments]
+    accessibility = await predict_accessibility(text="\n".join(comments))
+    await update_node(
+        db_conn=db_conn,
+        osm_id=osm_id,
+        accessibility=accessibility,
+    )
+    return comment_id
 
 
 async def delete_comment(
@@ -155,6 +165,15 @@ async def list_nodes(
     cursor_result = await db_conn.execute(query)
     results = cursor_result.mappings().all()
     return TypeAdapter(list[NodeSchema]).validate_python(results)
+
+
+async def get_node(db_conn: AsyncConnection, osm_id: str) -> NodeSchema:
+    nodes = await list_nodes(db_conn=db_conn)
+    node = next((n for n in nodes if n.osm_id == osm_id), None)
+    if node is None:
+        raise Exception("No node matches given osm_id")
+
+    return node
 
 
 async def create_accessibility_proposition(
