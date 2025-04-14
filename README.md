@@ -1,10 +1,13 @@
-## VIDEOS
+### VIDEOS
 https://drive.google.com/drive/folders/1HO2ZzTbPRUSKKdBQ0EqFLbwGTJgG_k2j?usp=sharing
 
-## Перспективи просування
+### Future vision
 https://www.notion.so/1d1aa238afc08097be28dd4af9da55f5?pvs=4
----
 
+### Hosting link
+http://35.192.186.150/
+
+---
 
 # Barrier Free – Real-World Accessibility Mapping Platform
 
